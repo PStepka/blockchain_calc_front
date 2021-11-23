@@ -1,7 +1,7 @@
 <template>
 <!--    <span> Output:</span>-->
   <div>
-    <textarea rows=3 class="history" v-model="history" disabled="disabled"/><br>
+    <textarea rows="3" class="history" v-model="history" disabled="disabled"/><br>
     <input v-model="output" disabled="disabled"><br>
 <!--    <span> Input: </span>-->
       <input ref="input" v-model="input"><br>
@@ -13,7 +13,7 @@
     <div>
       <button class="calc-button" @click="setOperator('*')">*</button>
       <button class="calc-button" @click="setOperator('/')">/</button>
-      <button class="calc-button" disabled="disabled" @click="setOperator('sqrt')">√</button>
+      <button class="calc-button" @click="setOperator('Err')">Err</button>
     </div>
     <div>
       <button class="calc-button" @click="invertInput">±</button>
@@ -39,11 +39,12 @@ export default {
       firstOperand: 0,
       secondOperand: 0,
       operator: "",
-      result: 0
+      result: 0,
+      resultCalculated: false
     }
   },
   methods: {
-    invertInput() {
+    invertInput() { // TODO: calculate on backend
       const inputValue = parseInt(this.input);
       this.input = - inputValue;
     },
@@ -56,6 +57,7 @@ export default {
       this.output = `${this.firstOperand} ${this.operator}`;
       this.input = "";
       this.setInputFocus();
+      this.resultCalculated = false;
     },
     clearAll() {
       this.firstOperand = 0;
@@ -64,10 +66,14 @@ export default {
       this.output = "";
       this.result = 0;
       this.setInputFocus();
+      this.resultCalculated = false;
     },
     async calculate() {
-      this.secondOperand = parseInt(this.input);
-      this.input = "";
+      if (!this.resultCalculated) {
+        this.secondOperand = parseInt(this.input);
+      } else {
+        this.firstOperand = parseInt(this.input);
+      }
 
       this.result = await this.requestCalculation(this.firstOperand, this.secondOperand, this.operator);
 
@@ -80,16 +86,17 @@ export default {
       }
 
       this.input = this.result;
+      this.resultCalculated = true;
 
       this.setInputFocus();
 
       return;
     },
-    async requestCalculation(firstOperand, secondOperand, operation) {
+    async requestCalculation(firstOperand, secondOperand, operator) {
       const ops = {
         firstOperand,
         secondOperand,
-        operation
+        operator: config.BINARY_OPERATORS[operator]
       }
 
       const requestOptions = {
