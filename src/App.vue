@@ -1,6 +1,6 @@
 <template>
   <div id="app">
-    <calc msg="Welcome to Exyte test app"/>
+    <calc/>
   </div>
 </template>
 

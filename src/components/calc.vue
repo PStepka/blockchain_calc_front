@@ -1,7 +1,7 @@
 <template>
-  <div class="hello">
-    <h1>{{ msg }}</h1>
 <!--    <span> Output:</span>-->
+  <div>
+    <textarea rows=3 class="history" v-model="history" disabled="disabled"/><br>
     <input v-model="output" disabled="disabled"><br>
 <!--    <span> Input: </span>-->
       <input ref="input" v-model="input"><br>
@@ -13,25 +13,27 @@
     <div>
       <button class="calc-button" @click="setOperator('*')">*</button>
       <button class="calc-button" @click="setOperator('/')">/</button>
-      <button class="calc-button" @click="setOperator('sqr')">sqrt</button>
+      <button class="calc-button" disabled="disabled" @click="setOperator('sqrt')">√</button>
     </div>
     <div>
-      <button class="calc-button" @click="calculate">+/-</button>
-      <button class="calc-button" @click="calculate">???</button>
+      <button class="calc-button" @click="invertInput">±</button>
+      <button class="calc-button" disabled="disabled">Exp</button>
       <button class="calc-button" @click="calculate">=</button>
     </div>
-<!--    <button @click="getSum">Calculate</button>-->
   </div>
+<!--    <button @click="getSum">Calculate</button>-->
 </template>
 
 <script>
+import { config } from '../config';
+
 export default {
   name: 'Calc',
-  props: {
-    msg: String
+  mounted() {
   },
   data() {
     return {
+      historyList: [],
       input: "",
       output: "",
       firstOperand: 0,
@@ -41,6 +43,10 @@ export default {
     }
   },
   methods: {
+    invertInput() {
+      const inputValue = parseInt(this.input);
+      this.input = - inputValue;
+    },
     setInputFocus() {
       this.$refs.input.focus();
     },
@@ -63,32 +69,48 @@ export default {
       this.secondOperand = parseInt(this.input);
       this.input = "";
 
+      this.result = await this.requestCalculation(this.firstOperand, this.secondOperand, this.operator);
+
+      this.output = `${this.firstOperand} ${this.operator} ${this.secondOperand} =`;
+
+      const historyItem = [this.output, this.result].join(" ");
+      this.historyList.push(historyItem);
+      if (this.historyList.length > config.MAX_HISTORY_LENGTH) {
+        this.historyList = this.historyList.slice(-config.MAX_HISTORY_LENGTH);
+      }
+
+      this.input = this.result;
+
+      this.setInputFocus();
+
+      return;
+    },
+    async requestCalculation(firstOperand, secondOperand, operation) {
       const ops = {
-        firstOperand: this.firstOperand,
-        secondOperand: this.secondOperand
+        firstOperand,
+        secondOperand,
+        operation
       }
 
       const requestOptions = {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(ops)
+        body:  JSON.stringify(ops)
       };
 
       const res = await fetch(
-          `http://localhost:3000/calculate/`,
+          `${config.BACKEND_URL}calculate/`,
           requestOptions
       );
-    //  console.log(res);
-      let quote = await res.json();
 
-      this.result = quote;
-      this.output = `${this.firstOperand} ${this.operator} ${this.secondOperand} =`;
-      this.input = this.result;
-//      this.operator = "";
+      let result = await res.json();
 
-      this.setInputFocus();
-
-      return;
+      return result;
+    }
+  },
+  computed: {
+    history() {
+      return this.historyList.join("\n");
     }
   }
 }
@@ -96,6 +118,9 @@ export default {
 
 <!-- Add "scoped" attribute to limit CSS to this component only -->
 <style scoped>
+.history {
+  resize: none;
+}
 .calc-button {
   width: 50px;
 }
