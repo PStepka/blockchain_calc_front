@@ -6,18 +6,18 @@
 <!--    <span> Input: </span>-->
       <input ref="input" v-model="input"><br>
     <div>
-      <button class="calc-button" @click="setOperator('+')">+</button>
-      <button class="calc-button" @click="setOperator('-')">-</button>
+      <button class="calc-button" @click="setBinaryOperator('+')">+</button>
+      <button class="calc-button" @click="setBinaryOperator('-')">-</button>
       <button class="calc-button" @click="clearAll">CLR</button>
     </div>
     <div>
-      <button class="calc-button" @click="setOperator('*')">*</button>
-      <button class="calc-button" @click="setOperator('/')">/</button>
-      <button class="calc-button" @click="setOperator('Err')">Err</button>
+      <button class="calc-button" @click="setBinaryOperator('*')">*</button>
+      <button class="calc-button" @click="setBinaryOperator('/')">/</button>
+      <button class="calc-button" @click="setBinaryOperator('Err')">Err</button>
     </div>
     <div>
-      <button class="calc-button" @click="invertInput">±</button>
-      <button class="calc-button" disabled="disabled">Exp</button>
+      <button class="calc-button" @click="useUnaryOperator('invert')">±</button>
+      <button class="calc-button" @click="useUnaryOperator('sqrt')">√</button>
       <button class="calc-button" @click="calculate">=</button>
     </div>
   </div>
@@ -36,22 +36,34 @@ export default {
       historyList: [],
       input: "",
       output: "",
-      firstOperand: 0,
-      secondOperand: 0,
-      operator: "",
+      firstOperand: undefined,
+      secondOperand: undefined,
+      operator: undefined,
       result: 0,
       resultCalculated: false
     }
   },
   methods: {
-    invertInput() { // TODO: calculate on backend
+    async useUnaryOperator(operator) {
       const inputValue = parseInt(this.input);
-      this.input = - inputValue;
+
+      try {
+        const result = await this.requestCalculation(inputValue, undefined, config.UNARY_OPERATORS[operator]);
+        this.input = result;
+        this.output = `${operator}(${inputValue}) =`;
+        this.addToHistory([this.output, result].join(" "));
+      } catch (e) {
+        this.input = e.message;
+      }
     },
     setInputFocus() {
       this.$refs.input.focus();
     },
-    setOperator(op) {
+    async setBinaryOperator(op) {
+      if (this.operator) {
+        await this.calculate();
+      }
+
       this.operator = op;
       this.firstOperand = parseInt(this.input);
       this.output = `${this.firstOperand} ${this.operator}`;
@@ -60,8 +72,9 @@ export default {
       this.resultCalculated = false;
     },
     clearAll() {
-      this.firstOperand = 0;
-      this.secondOperand = 0;
+      this.firstOperand = undefined;
+      this.secondOperand = undefined;
+      this.operator = undefined;
       this.input = "";
       this.output = "";
       this.result = 0;
@@ -75,15 +88,13 @@ export default {
         this.firstOperand = parseInt(this.input);
       }
 
-      this.result = await this.requestCalculation(this.firstOperand, this.secondOperand, this.operator);
+      this.result = await this.requestCalculation(this.firstOperand, this.secondOperand,
+        config.BINARY_OPERATORS[this.operator]);
 
       this.output = `${this.firstOperand} ${this.operator} ${this.secondOperand} =`;
 
       const historyItem = [this.output, this.result].join(" ");
-      this.historyList.push(historyItem);
-      if (this.historyList.length > config.MAX_HISTORY_LENGTH) {
-        this.historyList = this.historyList.slice(-config.MAX_HISTORY_LENGTH);
-      }
+      this.addToHistory(historyItem);
 
       this.input = this.result;
       this.resultCalculated = true;
@@ -92,11 +103,17 @@ export default {
 
       return;
     },
+    addToHistory(item) {
+      this.historyList.push(item);
+      if (this.historyList.length > config.MAX_HISTORY_LENGTH) {
+        this.historyList = this.historyList.slice(-config.MAX_HISTORY_LENGTH);
+      }
+    },
     async requestCalculation(firstOperand, secondOperand, operator) {
       const ops = {
         firstOperand,
         secondOperand,
-        operator: config.BINARY_OPERATORS[operator]
+        operator
       }
 
       const requestOptions = {
@@ -110,9 +127,13 @@ export default {
           requestOptions
       );
 
-      let result = await res.json();
-
-      return result;
+      if (res.status === 200) {
+        let result = await res.json();
+        return result;
+      } else {
+        console.log(res);
+        return res.statusText;
+      }
     }
   },
   computed: {

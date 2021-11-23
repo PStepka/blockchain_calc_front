@@ -7,5 +7,9 @@ export const config = {
         "/": 2,
         "*": 3,
         "err": 4
+    },
+    UNARY_OPERATORS: {
+        "invert": 0,
+        "sqrt": 1
     }
 }
