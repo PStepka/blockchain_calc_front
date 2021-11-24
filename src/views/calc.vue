@@ -87,7 +87,7 @@ export default {
       this.$refs.input.focus();
     },
     async setBinaryOperator(op) {
-      if (this.operator) {
+      if (this.operator && !this.resultCalculated) {
         await this.calculate();
       }
 
