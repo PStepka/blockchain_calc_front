@@ -2,7 +2,7 @@
 <!--    <span> Output:</span>-->
   <div class="wrapper">
     <textarea rows="3" class="history" v-model="history" disabled="disabled"/><br>
-    <input v-model="output" disabled="disabled"><br>
+    <input class="display" v-model="output" disabled="disabled"><br>
 <!--    <span> Input: </span>-->
       <input ref="input" class="display" v-model="input" @keypress="onInput"><br>
     <div>
@@ -30,6 +30,7 @@ import { config } from '../config';
 export default {
   name: 'Calc',
   mounted() {
+
   },
   data() {
     return {
@@ -65,6 +66,11 @@ export default {
     },
     async useUnaryOperator(operator) {
       const inputValue = parseInt(this.input);
+      if (isNaN(inputValue)) {
+        this.output = "Error";
+        return;
+      }
+
       this.operator = null;
 
       try {
@@ -74,7 +80,7 @@ export default {
         this.addToHistory([this.output, result].join(" "));
         this.resultCalculated = false;
       } catch (e) {
-        this.input = e.message;
+        this.output = "Error";// e.message;
       }
     },
     setInputFocus() {
@@ -85,8 +91,13 @@ export default {
         await this.calculate();
       }
 
-      this.operator = op;
       this.firstOperand = parseInt(this.input);
+      if (isNaN(this.firstOperand)) {
+        this.output = "Error";
+        return;
+      }
+
+      this.operator = op;
       this.output = `${this.firstOperand} ${this.operator}`;
       this.input = "";
       this.setInputFocus();
@@ -107,26 +118,35 @@ export default {
         return;
       }
 
-      if (!this.resultCalculated) {
-        this.secondOperand = parseInt(this.input);
-      } else {
-        this.firstOperand = parseInt(this.input);
+      const input = parseInt(this.input);
+      if (isNaN(input)) {
+        console.log("Wrong input: ", this.input);
+        this.output = "Error";
       }
 
-      this.result = await this.requestCalculation(this.firstOperand, this.secondOperand,
-        config.BINARY_OPERATORS[this.operator]);
+      if (!this.resultCalculated) {
+        this.secondOperand = input;
+      } else {
+        this.firstOperand = input;
+      }
 
-      this.output = `${this.firstOperand} ${this.operator} ${this.secondOperand} =`;
+      try {
+        this.result = await this.requestCalculation(this.firstOperand, this.secondOperand,
+            config.BINARY_OPERATORS[this.operator]);
+        this.output = `${this.firstOperand} ${this.operator} ${this.secondOperand} =`;
 
-      const historyItem = [this.output, this.result].join(" ");
-      this.addToHistory(historyItem);
+        const historyItem = [this.output, this.result].join(" ");
+        this.addToHistory(historyItem);
 
-      this.input = this.result;
-      this.resultCalculated = true;
+        this.input = this.result;
+        this.resultCalculated = true;
 
-      this.setInputFocus();
-
-      return;
+        this.setInputFocus();
+      } catch (e) {
+        console.log(e);
+        this.output = "Error";
+        return;
+      }
     },
     addToHistory(item) {
       this.historyList.push(item);
@@ -152,12 +172,13 @@ export default {
           requestOptions
       );
 
-      if (res.status === 200) {
+      if (res.ok) {
         let result = await res.json();
         return result;
       } else {
         console.log(res);
-        return res.statusText;
+        throw res.statusText;
+        //return res.statusText;
       }
     }
   },
@@ -171,6 +192,12 @@ export default {
 
 <!-- Add "scoped" attribute to limit CSS to this component only -->
 <style scoped>
+.wrapper {
+
+}
+.display {
+  width: available;
+}
 .history {
   resize: none;
 }
