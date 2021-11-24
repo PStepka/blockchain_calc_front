@@ -1,10 +1,10 @@
 <template>
 <!--    <span> Output:</span>-->
-  <div>
+  <div class="wrapper">
     <textarea rows="3" class="history" v-model="history" disabled="disabled"/><br>
     <input v-model="output" disabled="disabled"><br>
 <!--    <span> Input: </span>-->
-      <input ref="input" v-model="input"><br>
+      <input ref="input" class="display" v-model="input" @keypress="onInput"><br>
     <div>
       <button class="calc-button" @click="setBinaryOperator('+')">+</button>
       <button class="calc-button" @click="setBinaryOperator('-')">-</button>
@@ -44,14 +44,35 @@ export default {
     }
   },
   methods: {
+    async onInput ($event) {
+      const key = $event.key;
+      if (config.BINARY_OPERATORS[key] !== undefined) {
+        $event.preventDefault();
+        await this.setBinaryOperator(key);
+        return;
+      }
+
+      if (key === "=") {
+        $event.preventDefault();
+        await this.calculate();
+        return;
+      }
+
+      const keyCode = ($event.keyCode ? $event.keyCode : $event.which);
+      if (keyCode < 48 || keyCode > 57) {
+        $event.preventDefault();
+      }
+    },
     async useUnaryOperator(operator) {
       const inputValue = parseInt(this.input);
+      this.operator = null;
 
       try {
         const result = await this.requestCalculation(inputValue, undefined, config.UNARY_OPERATORS[operator]);
         this.input = result;
         this.output = `${operator}(${inputValue}) =`;
         this.addToHistory([this.output, result].join(" "));
+        this.resultCalculated = false;
       } catch (e) {
         this.input = e.message;
       }
@@ -82,6 +103,10 @@ export default {
       this.resultCalculated = false;
     },
     async calculate() {
+      if (!this.operator) {
+        return;
+      }
+
       if (!this.resultCalculated) {
         this.secondOperand = parseInt(this.input);
       } else {
@@ -151,6 +176,7 @@ export default {
 }
 .calc-button {
   width: 50px;
+  margin: 0.5rem;
 }
 h3 {
   margin: 40px 0 0;
