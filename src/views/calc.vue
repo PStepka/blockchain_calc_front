@@ -68,6 +68,7 @@ export default {
       }
 
       try {
+        this.output = "Please wait..."
         const result = await this.requestCalculation(inputValue, undefined, config.UNARY_OPERATORS[operator]);
         this.input = result;
         this.output = `${operator}(${inputValue}) =`;
@@ -118,6 +119,7 @@ export default {
       this.secondOperand = input;
 
       try {
+        this.output = "Please wait..."
         this.result = await this.requestCalculation(this.firstOperand, this.secondOperand,
             config.BINARY_OPERATORS[this.operator]);
         this.output = `${this.firstOperand} ${this.operator} ${this.secondOperand} =`;
