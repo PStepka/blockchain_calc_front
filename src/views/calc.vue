@@ -74,7 +74,7 @@ export default {
         this.output = `${operator}(${inputValue}) =`;
         this.addToHistory([this.output, result].join(" "));
       } catch (e) {
-        console.log(e.message);
+        console.log(e);
         this.output = "Error";
       }
     },
