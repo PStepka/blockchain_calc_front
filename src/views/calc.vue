@@ -1,7 +1,7 @@
 <template>
 <!--    <span> Output:</span>-->
   <div class="wrapper">
-    <textarea rows="3" class="history" v-model="history" disabled="disabled"/><br>
+    <textarea rows="3" class="history display" v-model="history" disabled="disabled"/><br>
     <input class="display" v-model="output" disabled="disabled"><br>
 <!--    <span> Input: </span>-->
       <input ref="input" class="display" v-model="input" @keypress="onInput"><br>
@@ -193,10 +193,12 @@ export default {
 <!-- Add "scoped" attribute to limit CSS to this component only -->
 <style scoped>
 .wrapper {
-
+  width: 200px;
+  background-color: aliceblue;
+  margin: auto;
 }
 .display {
-  width: available;
+  width: -moz-available;
 }
 .history {
   resize: none;
