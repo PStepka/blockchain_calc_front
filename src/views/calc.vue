@@ -1,9 +1,7 @@
 <template>
-<!--    <span> Output:</span>-->
   <div class="wrapper">
     <textarea rows="3" class="history display" v-model="history" disabled="disabled"/><br>
     <input class="display" v-model="output" disabled="disabled"><br>
-<!--    <span> Input: </span>-->
       <input ref="input" class="display" v-model="input" @keypress="onInput"><br>
     <div>
       <button class="calc-button" @click="setBinaryOperator('+')">+</button>
@@ -21,11 +19,10 @@
       <button class="calc-button" @click="calculate">=</button>
     </div>
   </div>
-<!--    <button @click="getSum">Calculate</button>-->
 </template>
 
 <script>
-import { config } from '../config';
+import { config } from '@/config';
 
 export default {
   name: 'Calc',
@@ -41,7 +38,6 @@ export default {
       secondOperand: undefined,
       operator: undefined,
       result: 0,
-      resultCalculated: false
     }
   },
   methods: {
@@ -65,33 +61,27 @@ export default {
       }
     },
     async useUnaryOperator(operator) {
-      const inputValue = parseInt(this.input);
+      const inputValue = this.input? parseInt(this.input) : 0;
       if (isNaN(inputValue)) {
         this.output = "Error";
         return;
       }
-
-      this.operator = null;
 
       try {
         const result = await this.requestCalculation(inputValue, undefined, config.UNARY_OPERATORS[operator]);
         this.input = result;
         this.output = `${operator}(${inputValue}) =`;
         this.addToHistory([this.output, result].join(" "));
-        this.resultCalculated = false;
       } catch (e) {
-        this.output = "Error";// e.message;
+        console.log(e.message);
+        this.output = "Error";
       }
     },
     setInputFocus() {
       this.$refs.input.focus();
     },
     async setBinaryOperator(op) {
-      if (this.operator && !this.resultCalculated) {
-        await this.calculate();
-      }
-
-      this.firstOperand = parseInt(this.input);
+      this.firstOperand = this.input? parseInt(this.input) : 0;
       if (isNaN(this.firstOperand)) {
         this.output = "Error";
         return;
@@ -101,51 +91,45 @@ export default {
       this.output = `${this.firstOperand} ${this.operator}`;
       this.input = "";
       this.setInputFocus();
-      this.resultCalculated = false;
     },
-    clearAll() {
+    clearOperation() {
       this.firstOperand = undefined;
       this.secondOperand = undefined;
       this.operator = undefined;
+    },
+    clearAll() {
+      this.clearOperation();
       this.input = "";
       this.output = "";
       this.result = 0;
       this.setInputFocus();
-      this.resultCalculated = false;
     },
     async calculate() {
       if (!this.operator) {
         return;
       }
 
-      const input = parseInt(this.input);
+      const input = this.input? parseInt(this.input) : 0;
       if (isNaN(input)) {
         console.log("Wrong input: ", this.input);
         this.output = "Error";
       }
 
-      if (!this.resultCalculated) {
-        this.secondOperand = input;
-      } else {
-        this.firstOperand = input;
-      }
+      this.secondOperand = input;
 
       try {
         this.result = await this.requestCalculation(this.firstOperand, this.secondOperand,
             config.BINARY_OPERATORS[this.operator]);
         this.output = `${this.firstOperand} ${this.operator} ${this.secondOperand} =`;
-
+        this.clearOperation();
         const historyItem = [this.output, this.result].join(" ");
         this.addToHistory(historyItem);
 
         this.input = this.result;
-        this.resultCalculated = true;
-
         this.setInputFocus();
       } catch (e) {
         console.log(e);
         this.output = "Error";
-        return;
       }
     },
     addToHistory(item) {
@@ -178,7 +162,6 @@ export default {
       } else {
         console.log(res);
         throw res.statusText;
-        //return res.statusText;
       }
     }
   },
@@ -198,7 +181,8 @@ export default {
   margin: auto;
 }
 .display {
-  width: -moz-available;
+  box-sizing: border-box;
+  width: 100%;
 }
 .history {
   resize: none;
