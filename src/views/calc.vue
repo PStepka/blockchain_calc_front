@@ -11,10 +11,10 @@
     <div>
       <button class="calc-button" @click="setBinaryOperator('*')">*</button>
       <button class="calc-button" @click="setBinaryOperator('/')">/</button>
-      <button class="calc-button" @click="setBinaryOperator('Err')">Err</button>
+      <button class="calc-button" @click="store">Set</button>
     </div>
     <div>
-      <button class="calc-button" @click="useUnaryOperator('invert')">±</button>
+      <button class="calc-button" @click="get">mr</button>
       <button class="calc-button" @click="useUnaryOperator('sqrt')">√</button>
       <button class="calc-button" @click="calculate">=</button>
     </div>
@@ -23,10 +23,37 @@
 
 <script>
 import { config } from '@/config';
+import { ethers } from 'ethers';
+const contract = require('./contract.json');
 
 export default {
   name: 'Calc',
-  mounted() {
+  async mounted() {
+    // A Web3Provider wraps a standard Web3 provider, which is
+    // what MetaMask injects as window.ethereum into each page
+    await window.ethereum.enable();
+
+    const provider = new ethers.providers.Web3Provider(window.ethereum);
+
+    console.log(await provider.listAccounts());
+    // The MetaMask plugin also allows signing transactions to
+    // send ether and pay to change state within the blockchain.
+    // For this, you need the account signer...
+    const signer = provider.getSigner();
+    const balance = await provider.getBalance("0x9F327c8554B5ADB5eD5d9051Ecd91CfC1eac409a");
+
+    console.log(balance.toString());
+    console.log(ethers.utils.formatEther(balance));
+
+    const contractAddress = "0x908609443767cf83d2cA39c86A89F60a11EDC19E";
+    const contractAbi = contract.output.abi;
+
+    const contr = new ethers.Contract(contractAddress, contractAbi, provider);
+
+    console.log((await contr.get()).toString());
+
+    const contrWithSigner = contr.connect(signer);
+    this.contrWithSigner = contrWithSigner;
 
   },
   data() {
@@ -38,6 +65,7 @@ export default {
       secondOperand: undefined,
       operator: undefined,
       result: 0,
+      contrWithSigner: null
     }
   },
   methods: {
@@ -165,7 +193,34 @@ export default {
         console.log(res);
         throw res.statusText;
       }
-    }
+    },
+    async store() {
+      const input = parseInt(this.input);
+
+      const tx = this.contrWithSigner.store(input);
+
+      await tx;
+    },
+    async get() {
+      const requestOptions = {
+        method: "GET",
+        headers: { "Content-Type": "application/json" },
+      };
+
+      const res = await fetch(
+          `${config.BACKEND_URL}get/`,
+          requestOptions
+      );
+
+      if (res.ok) {
+        let result = await res.json();
+        this.input = result;
+        return result;
+      } else {
+        console.log(res);
+        throw res.statusText;
+      }
+    },
   },
   computed: {
     history() {

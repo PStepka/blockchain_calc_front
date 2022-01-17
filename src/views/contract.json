@@ -1,0 +1,144 @@
+{
+  "compiler": {
+    "version": "0.8.7+commit.e28d00a7"
+  },
+  "language": "Solidity",
+  "output": {
+    "abi": [
+      {
+        "inputs": [],
+        "name": "get",
+        "outputs": [
+          {
+            "internalType": "int256",
+            "name": "",
+            "type": "int256"
+          }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+      },
+      {
+        "inputs": [
+          {
+            "internalType": "int256",
+            "name": "first",
+            "type": "int256"
+          },
+          {
+            "internalType": "int256",
+            "name": "second",
+            "type": "int256"
+          },
+          {
+            "internalType": "enum Calc.BinaryOperator",
+            "name": "op",
+            "type": "uint8"
+          }
+        ],
+        "name": "getBinaryOperation",
+        "outputs": [
+          {
+            "internalType": "int256",
+            "name": "",
+            "type": "int256"
+          }
+        ],
+        "stateMutability": "pure",
+        "type": "function"
+      },
+      {
+        "inputs": [
+          {
+            "internalType": "int256",
+            "name": "first",
+            "type": "int256"
+          },
+          {
+            "internalType": "enum Calc.UnaryOperator",
+            "name": "op",
+            "type": "uint8"
+          }
+        ],
+        "name": "getUnaryOperation",
+        "outputs": [
+          {
+            "internalType": "int256",
+            "name": "",
+            "type": "int256"
+          }
+        ],
+        "stateMutability": "pure",
+        "type": "function"
+      },
+      {
+        "inputs": [
+          {
+            "internalType": "int256",
+            "name": "x",
+            "type": "int256"
+          }
+        ],
+        "name": "sqrt",
+        "outputs": [
+          {
+            "internalType": "int256",
+            "name": "y",
+            "type": "int256"
+          }
+        ],
+        "stateMutability": "pure",
+        "type": "function"
+      },
+      {
+        "inputs": [
+          {
+            "internalType": "int256",
+            "name": "x",
+            "type": "int256"
+          }
+        ],
+        "name": "store",
+        "outputs": [],
+        "stateMutability": "nonpayable",
+        "type": "function"
+      }
+    ],
+    "devdoc": {
+      "kind": "dev",
+      "methods": {},
+      "version": 1
+    },
+    "userdoc": {
+      "kind": "user",
+      "methods": {},
+      "version": 1
+    }
+  },
+  "settings": {
+    "compilationTarget": {
+      "contracts/calc.sol": "Calc"
+    },
+    "evmVersion": "london",
+    "libraries": {},
+    "metadata": {
+      "bytecodeHash": "ipfs"
+    },
+    "optimizer": {
+      "enabled": false,
+      "runs": 200
+    },
+    "remappings": []
+  },
+  "sources": {
+    "contracts/calc.sol": {
+      "keccak256": "0x83aeacd2382910e0fe814f622e58716b6d07badd14675b648ba780702c8aaa44",
+      "license": "GPL-3.0",
+      "urls": [
+        "bzz-raw://056b72b2cee4edad26aa089af224a966dade4bdfab00d409d200268a93e56d7e",
+        "dweb:/ipfs/QmYmfYZfDssJgS9n4BsE1eu7d5xRuoXLs24FY9z4wBFE19"
+      ]
+    }
+  },
+  "version": 1
+}
