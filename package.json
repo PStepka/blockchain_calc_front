@@ -7,6 +7,8 @@
     "build": "vue-cli-service build"
   },
   "dependencies": {
+    "@biconomy/mexa": "^2.0.25",
+    "@opengsn/contracts": "^2.2.5",
     "core-js": "^3.6.5",
     "ethers": "^5.5.3",
     "vue": "^2.6.11"
